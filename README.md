@@ -2,6 +2,10 @@
 
 A comprehensive Streamlit web application for generating bulk barcodes on A4 sheets for printing. Generate different barcode numbers with custom quantities and optional titles, all optimally arranged for professional printing.
 
+## ⚠️ Important Notice
+
+**This application is developed exclusively for office/workplace operations and productivity purposes. It is not intended for academic projects, data science portfolios, or educational demonstrations. This is a practical business tool designed to streamline barcode generation workflows in professional environments.**
+
 ## ✨ Features
 
 - 🔢 **Multiple Barcode Types**: Generate different barcode numbers with individual quantities
@@ -106,11 +110,15 @@ Barcode Gen/
 
 ## 🎯 Use Cases
 
-- **Inventory Management**: Generate barcodes for product tracking
-- **Asset Labeling**: Create labels for equipment and assets
-- **Event Management**: Generate ticket or participant barcodes
-- **Retail Operations**: Product labeling and price tags
-- **Document Tracking**: File and document identification systems
+**Designed specifically for office and business operations:**
+
+- **Office Inventory Management**: Generate barcodes for internal product and supply tracking
+- **Workplace Asset Labeling**: Create labels for office equipment, furniture, and assets
+- **Internal Operations**: Generate barcodes for workflow management and process tracking
+- **Business Document Tracking**: File and document identification systems for office use
+- **Professional Labeling**: Product labeling and identification for business purposes
+
+*Note: This tool is built for practical workplace applications and operational efficiency.*
 
 ## 🖨️ Printing Tips
 
@@ -174,4 +182,6 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 
 ---
 
-**Made with ❤️ for efficient barcode generation and printing**
+**Made with ❤️ for efficient office barcode generation and workplace productivity**
+
+*This application is specifically designed for professional office use and operational efficiency. It is not intended for academic, educational, or data science portfolio purposes.*
