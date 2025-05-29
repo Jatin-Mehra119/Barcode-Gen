@@ -3,12 +3,14 @@ FROM python:3.12.10-alpine
 # Set working directory
 WORKDIR /app
 
-# Install dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+# Install minimal dependencies
+RUN apk add --no-cache \
+    build-base \
+    libffi-dev \
+    openssl-dev \
+    python3-dev \
+    && pip install --upgrade pip
+
 
 # Copy requirements file and install Python dependencies
 COPY requirements.txt .
