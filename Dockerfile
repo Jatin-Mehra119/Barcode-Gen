@@ -3,13 +3,16 @@ FROM python:3.10
 # Set working directory
 WORKDIR /app
 
-# Install minimal dependencies
-RUN apk add --no-cache \
-    build-base \
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
     libffi-dev \
-    openssl-dev \
+    libssl-dev \
     python3-dev \
-    && pip install --upgrade pip
+    && pip install --upgrade pip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 
 
 # Copy requirements file and install Python dependencies
