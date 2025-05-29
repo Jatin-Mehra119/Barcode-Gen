@@ -2,7 +2,7 @@
 
 from barcode.codex import Code128
 from barcode.writer import ImageWriter
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import io
 import os
 
@@ -23,17 +23,73 @@ def generate_single_barcode(number, options):
     # Open as PIL Image
     return Image.open(buffer)
 
+def generate_barcode_with_title(number, title, options):
+    """Generate a barcode with custom title text on top"""
+    # First generate the standard barcode
+    barcode_img = generate_single_barcode(number, options)
+    
+    if not title:
+        return barcode_img
+    
+    # Calculate dimensions for the combined image
+    barcode_width, barcode_height = barcode_img.size
+    
+    # Try to load a font, fall back to default if not available
+    try:
+        # Try to use a system font
+        font = ImageFont.truetype("arial.ttf", 16)
+    except:
+        try:
+            font = ImageFont.truetype("Arial.ttf", 16)
+        except:
+            # Fall back to default font
+            font = ImageFont.load_default()
+    
+    # Create a temporary image to measure text size
+    temp_img = Image.new('RGB', (1, 1), 'white')
+    temp_draw = ImageDraw.Draw(temp_img)
+    
+    # Get text bounding box
+    bbox = temp_draw.textbbox((0, 0), title, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+    
+    # Add padding for text
+    text_padding = 10
+    title_section_height = text_height + (text_padding * 2)
+    
+    # Create new image with space for title
+    combined_width = max(barcode_width, text_width + (text_padding * 2))
+    combined_height = barcode_height + title_section_height
+    
+    combined_img = Image.new('RGB', (combined_width, combined_height), 'white')
+    draw = ImageDraw.Draw(combined_img)
+    
+    # Draw the title text centered at the top
+    text_x = (combined_width - text_width) // 2
+    text_y = text_padding
+    draw.text((text_x, text_y), title, fill='black', font=font)
+    
+    # Paste the barcode below the title
+    barcode_x = (combined_width - barcode_width) // 2
+    barcode_y = title_section_height
+    combined_img.paste(barcode_img, (barcode_x, barcode_y))
+    
+    return combined_img
+
 def create_a4_barcode_sheet(start_number, count=65):
     """Create an A4 sheet with multiple barcodes (legacy function for backwards compatibility)"""
-    barcode_specs = [{'number': start_number, 'count': count}]
-    return create_multi_barcode_sheet(barcode_specs)
+    barcode_specs = [{'number': start_number, 'count': count, 'title': ''}]
+    sheets = create_multi_barcode_sheet(barcode_specs)
+    return sheets[0] if isinstance(sheets, list) else sheets
 
 def create_multi_barcode_sheet(barcode_specs):
     """Create multiple A4 sheets with different barcodes
     
     Args:
-        barcode_specs: List of dictionaries with 'number' and 'count' keys
-                      e.g., [{'number': 12345, 'count': 25}, {'number': 67890, 'count': 30}]
+        barcode_specs: List of dictionaries with 'number', 'count', and optional 'title' keys
+                      e.g., [{'number': 12345, 'count': 25, 'title': 'Product A'}, 
+                             {'number': 67890, 'count': 30, 'title': 'Product B'}]
     
     Returns:
         List of PIL Images (one per A4 sheet) or single PIL Image if only one sheet
@@ -63,12 +119,16 @@ def create_multi_barcode_sheet(barcode_specs):
         'background': 'white',
         'foreground': 'black',
     }
-    
-    # Generate first barcode to get dimensions
+      # Generate first barcode to get dimensions (check if it has a title for sizing)
     if not barcode_specs:
         raise ValueError("No barcode specifications provided")
     
-    sample_barcode = generate_single_barcode(barcode_specs[0]['number'], options)
+    first_spec = barcode_specs[0]
+    first_title = first_spec.get('title', '')
+    if first_title:
+        sample_barcode = generate_barcode_with_title(first_spec['number'], first_title, options)
+    else:
+        sample_barcode = generate_single_barcode(first_spec['number'], options)
     barcode_width, barcode_height = sample_barcode.size
     
     # Calculate grid layout
@@ -85,8 +145,9 @@ def create_multi_barcode_sheet(barcode_specs):
     for spec in barcode_specs:
         number = spec['number']
         count = spec['count']
+        title = spec.get('title', '')
         for _ in range(count):
-            all_barcodes.append(number)
+            all_barcodes.append({'number': number, 'title': title})
             
     total_barcodes = len(all_barcodes)
     sheets_needed = (total_barcodes + barcodes_per_sheet - 1) // barcodes_per_sheet
@@ -116,14 +177,18 @@ def create_multi_barcode_sheet(barcode_specs):
             position_on_sheet = i - start_idx
             row = position_on_sheet // cols
             col = position_on_sheet % cols
-            
             if row >= rows:
                 break
                 
-            current_number = all_barcodes[i]
+            barcode_data = all_barcodes[i]
+            current_number = barcode_data['number']
+            current_title = barcode_data['title']
             
-            # Generate barcode
-            barcode_img = generate_single_barcode(current_number, options)
+            # Generate barcode with or without title
+            if current_title:
+                barcode_img = generate_barcode_with_title(current_number, current_title, options)
+            else:
+                barcode_img = generate_single_barcode(current_number, options)
             
             # Calculate position
             x = start_x + col * (barcode_width + 10)
@@ -132,7 +197,8 @@ def create_multi_barcode_sheet(barcode_specs):
             # Paste barcode on canvas
             canvas.paste(barcode_img, (x, y))
             
-            print(f"Generated barcode {i+1}/{total_barcodes}: {current_number} (Sheet {sheet_num + 1})")
+            title_info = f" ('{current_title}')" if current_title else ""
+            print(f"Generated barcode {i+1}/{total_barcodes}: {current_number}{title_info} (Sheet {sheet_num + 1})")
         
         sheets.append(canvas)
     
