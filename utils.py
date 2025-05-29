@@ -33,14 +33,13 @@ def generate_barcode_with_title(number, title, options):
     
     # Calculate dimensions for the combined image
     barcode_width, barcode_height = barcode_img.size
-    
-    # Try to load a font, fall back to default if not available
+      # Try to load a font, fall back to default if not available
     try:
         # Try to use a system font
-        font = ImageFont.truetype("arial.ttf", 16)
+        font = ImageFont.truetype("arial.ttf", 22)
     except:
         try:
-            font = ImageFont.truetype("Arial.ttf", 16)
+            font = ImageFont.truetype("Arial.ttf", 22)
         except:
             # Fall back to default font
             font = ImageFont.load_default()
