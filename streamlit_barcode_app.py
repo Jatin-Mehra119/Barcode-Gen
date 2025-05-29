@@ -21,19 +21,17 @@ def main():
     
     with col1:
         st.subheader("🎯 Barcode Specifications")
-        
-        # Initialize session state for barcode list
+          # Initialize session state for barcode list
         if 'barcode_list' not in st.session_state:
             st.session_state.barcode_list = [
-                {'number': '1120000250608', 'count': 25},
-                {'number': '45678', 'count': 25},
-                {'number': '7885526', 'count': 36}
+                {'number': '1120000250608', 'count': 25, 'title': 'Product A'},
+                {'number': '1120000250625', 'count': 25, 'title': 'Product B'},
+                {'number': '1120000250808', 'count': 36, 'title': 'Product C'}
             ]
-        
-        # Form for adding new barcodes
+          # Form for adding new barcodes
         with st.form("add_barcode_form"):
             st.markdown("**Add New Barcode:**")
-            add_col1, add_col2, add_col3 = st.columns([2, 1, 1])
+            add_col1, add_col2, add_col3, add_col4 = st.columns([2, 1, 1.5, 1])
             
             with add_col1:
                 new_barcode = st.text_input(
@@ -53,33 +51,43 @@ def main():
                 )
             
             with add_col3:
+                new_title = st.text_input(
+                    "Title/Name:",
+                    placeholder="e.g., Product A",
+                    key="new_title",
+                    help="This text will appear above each barcode"
+                )
+            
+            with add_col4:
                 st.markdown("<br>", unsafe_allow_html=True)  # Add spacing
                 add_button = st.form_submit_button("➕ Add", use_container_width=True)
-        
-        # Add barcode to list
+          # Add barcode to list
         if add_button and new_barcode:
             st.session_state.barcode_list.append({
                 'number': new_barcode,
-                'count': new_count
+                'count': new_count,
+                'title': new_title if new_title else ''
             })
             st.rerun()
-        
-        # Display current barcode list
+          # Display current barcode list
         st.markdown("**Current Barcode List:**")
         if st.session_state.barcode_list:
             # Create DataFrame for display
             df = pd.DataFrame(st.session_state.barcode_list)
             df.index = df.index + 1  # Start index from 1
-            df.columns = ['Barcode Number', 'Quantity']
+            df.columns = ['Barcode Number', 'Quantity', 'Title/Name']
             
             # Display as table with actions
             for idx, row in df.iterrows():
-                cols = st.columns([2, 1, 1])
+                cols = st.columns([2, 1, 1.5, 1])
                 with cols[0]:
                     st.text(f"{idx}. {row['Barcode Number']}")
                 with cols[1]:
                     st.text(f"Qty: {row['Quantity']}")
                 with cols[2]:
+                    title_display = row['Title/Name'] if row['Title/Name'] else '(No title)'
+                    st.text(f"Title: {title_display}")
+                with cols[3]:
                     if st.button("🗑️", key=f"delete_{idx}", help="Delete this barcode"):
                         st.session_state.barcode_list.pop(idx - 1)
                         st.rerun()
@@ -98,13 +106,12 @@ def main():
         if st.button("🗑️ Clear All", use_container_width=True):
             st.session_state.barcode_list = []
             st.rerun()
-        
-        # Load sample data button
+          # Load sample data button
         if st.button("📝 Load Sample Data", use_container_width=True):
             st.session_state.barcode_list = [
-                {'number': '1120000250608', 'count': 25},
-                {'number': '1120000250625', 'count': 25},
-                {'number': '1120000250808', 'count': 36}
+                {'number': '1120000250608', 'count': 25, 'title': 'Product A'},
+                {'number': '1120000250625', 'count': 25, 'title': 'Product B'},
+                {'number': '1120000250808', 'count': 36, 'title': 'Product C'}
             ]
             st.rerun()
         
@@ -121,10 +128,13 @@ def main():
     # Process form submission
     if generate_button and st.session_state.barcode_list:
         with st.spinner("Generating barcodes..."):
-            try:
-                # Prepare barcode specifications
+            try:                # Prepare barcode specifications
                 barcode_specs = [
-                    {'number': int(item['number']), 'count': int(item['count'])}
+                    {
+                        'number': int(item['number']), 
+                        'count': int(item['count']),
+                        'title': item.get('title', '')
+                    }
                     for item in st.session_state.barcode_list
                 ]
                 
@@ -195,12 +205,11 @@ def main():
                     mime="application/pdf",
                     use_container_width=True
                 )
-                
-                # Display summary
+                  # Display summary
                 st.markdown("---")
                 st.subheader("📊 Generation Summary")
                 summary_df = pd.DataFrame(st.session_state.barcode_list)
-                summary_df.columns = ['Barcode Number', 'Quantity Generated']
+                summary_df.columns = ['Barcode Number', 'Quantity Generated', 'Title/Name']
                 st.dataframe(summary_df, use_container_width=True)
                 
             except Exception as e:
@@ -210,16 +219,16 @@ def main():
     # Instructions
     st.markdown("---")
     st.subheader("📖 Instructions")
-    st.markdown("""
-    ### How to use this Multi-Barcode Generator:
+    st.markdown("""    ### How to use this Multi-Barcode Generator:
     
-    1. **Add Barcodes**: Enter each barcode number and specify how many copies you need
+    1. **Add Barcodes**: Enter each barcode number, specify quantity, and add a custom title/name
     2. **Review List**: Check your barcode list in the table above
     3. **Generate**: Click "Generate Barcodes" to create your PDF
     4. **Download**: Get your multi-page PDF with all barcodes organized efficiently
     
     #### 💡 Features:
-    - **Multiple barcode types**: Each barcode number can have a different quantity
+    - **Multiple barcode types**: Each barcode number can have a different quantity and title
+    - **Custom titles**: Add custom text that appears above each barcode
     - **Multi-page support**: Automatically creates multiple A4 sheets as needed
     - **Optimal layout**: Barcodes are arranged efficiently on each sheet
     - **High quality**: Generated PDFs are print-ready at 300 DPI resolution
@@ -227,12 +236,18 @@ def main():
     
     #### 📋 Example Input:
     ```
-    Barcode 1: 1120000250608, Quantity: 25
-    Barcode 2: 45678, Quantity: 25  
-    Barcode 3: 7885526, Quantity: 36
+    Barcode 1: 1120000250608, Quantity: 25, Title: "Product A"
+    Barcode 2: 45678, Quantity: 25, Title: "Product B"
+    Barcode 3: 7885526, Quantity: 36, Title: "Product C"
     ```
     
-    This will generate **86 total barcodes** across multiple sheets as needed.
+    This will generate **86 total barcodes** with custom titles across multiple sheets as needed.
+    
+    #### 🎯 Title Feature:
+    - **Custom Text**: Each barcode can have a unique title that appears above it
+    - **Product Names**: Perfect for product labels, inventory tracking, etc.
+    - **Optional**: Leave title field empty if you don't need custom text
+    - **Professional**: Titles are automatically centered and sized appropriately
     """)
 
 if __name__ == "__main__":
