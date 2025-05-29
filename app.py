@@ -44,7 +44,7 @@ def main():
                 new_count = st.number_input(
                     "Quantity:",
                     min_value=1,
-                    max_value=500,
+                    max_value=1000,
                     value=25,
                     step=1,
                     key="new_count"
