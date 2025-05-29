@@ -20,4 +20,4 @@ COPY . .
 EXPOSE 7860
 
 # Run the application
-CMD ["python", "-m", "streamlit", "run", "streamlit_barcode_app.py", "--server.port=7860", "--server.address=0.0.0.0"]
+CMD ["python", "-m", "streamlit", "run", "app.py", "--server.port=7860", "--server.address=0.0.0.0"]
