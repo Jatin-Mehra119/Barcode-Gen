@@ -3,7 +3,7 @@
 Test script for the multi-barcode generator functionality
 """
 
-from bulk_barcode_generator import create_multi_barcode_sheet, save_sheets_as_pdf
+from utils import create_multi_barcode_sheet, save_sheets_as_pdf
 
 def test_multi_barcode_generation():
     """Test the multi-barcode generation functionality"""

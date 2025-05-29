@@ -3,7 +3,7 @@
 Test script for the updated multi-barcode generator with titles
 """
 
-from bulk_barcode_generator import create_multi_barcode_sheet, save_sheets_as_pdf
+from utils import create_multi_barcode_sheet, save_sheets_as_pdf
 
 def test_barcode_with_titles():
     """Test generating barcodes with custom titles"""

@@ -3,7 +3,7 @@ import io
 import tempfile
 import os
 import time
-from bulk_barcode_generator import create_a4_barcode_sheet
+from utils import create_a4_barcode_sheet
 
 def main():
     st.set_page_config(
