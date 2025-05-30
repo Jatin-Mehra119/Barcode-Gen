@@ -66,6 +66,74 @@ Barcode Gen/
 └── test_titles.py               # Title feature tests
 ```
 
+## System Architecture
+
+The following diagram illustrates the application's system architecture and component relationships:
+
+```mermaid
+---
+config:
+  theme: forest
+  look: neo
+---
+flowchart TD
+    subgraph "Docker Container" 
+        direction TB
+        subgraph "UI Layer"
+            Streamlit["Streamlit UI (app.py)"]:::ui
+        end
+        subgraph "Business Logic Layer"
+            Logic["Business Logic (utils.py)"]:::logic
+        end
+        subgraph "External Libraries"
+            Barcode["python-barcode"]:::lib
+            Pillow["Pillow"]:::lib
+            Pandas["pandas"]:::lib
+        end
+        subgraph "Output Module"
+            PDFAssembly["PDF Assembly"]:::logic
+            Output["Streamlit Download Widget"]:::ui
+        end
+        subgraph "Deployment Config"
+            DockerfileNode["Dockerfile"]:::deployment
+            Req["requirements.txt"]:::deployment
+            GitIgnore[".gitignore"]:::deployment
+            Backup["streamlit_barcode_app_backup.py"]:::deployment
+        end
+        Streamlit -->|"input_data"| Logic
+        Logic -->|"barcode_data"| Barcode
+        Logic -->|"image_object"| Pillow
+        Logic -->|"batch_data"| Pandas
+        Barcode -->|"barcode_img"| Logic
+        Pillow -->|"composed_img"| Logic
+        Logic -->|"PDF buffer"| PDFAssembly
+        PDFAssembly -->|"pdf_buffer"| Output
+        Output -->|"file_download"| Streamlit
+    end
+    User["User Browser"]:::external
+    User -->|"interact"| Streamlit
+    subgraph "Tests"
+        UItest["UI Test Harness (test_app.py)"]:::test
+        LabelTest["Label Logic Test (test_titles.py)"]:::test
+    end
+    UItest -.->|"verify UI callbacks"| Streamlit
+    LabelTest -.->|"validate logic"| Logic
+    click Streamlit "https://github.com/jatin-mehra119/barcode-gen/blob/main/app.py"
+    click Logic "https://github.com/jatin-mehra119/barcode-gen/blob/main/utils.py"
+    click UItest "https://github.com/jatin-mehra119/barcode-gen/blob/main/test_app.py"
+    click LabelTest "https://github.com/jatin-mehra119/barcode-gen/blob/main/test_titles.py"
+    click DockerfileNode "https://github.com/jatin-mehra119/barcode-gen/tree/main/Dockerfile"
+    click Req "https://github.com/jatin-mehra119/barcode-gen/blob/main/requirements.txt"
+    click GitIgnore "https://github.com/jatin-mehra119/barcode-gen/blob/main/.gitignore"
+    click Backup "https://github.com/jatin-mehra119/barcode-gen/blob/main/streamlit_barcode_app_backup.py"
+    classDef ui fill:#D0E8FF,stroke:#007ACC
+    classDef logic fill:#DFFFD0,stroke:#2D8F00
+    classDef lib fill:#FFE4B2,stroke:#D97706
+    classDef external fill:#FFFFFF,stroke:#000000
+    classDef test fill:#F0D0FF,stroke:#800080
+    classDef deployment fill:#E0E0E0,stroke:#7C7C7C
+```
+
 ## Office Use Cases
 
 **Designed specifically for office and business operations:**
