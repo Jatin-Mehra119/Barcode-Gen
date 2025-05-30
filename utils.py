@@ -36,10 +36,10 @@ def generate_barcode_with_title(number, title, options):
       # Try to load a font, fall back to default if not available
     try:
         # Try to use a system font
-        font = ImageFont.truetype("arial.ttf", 22)
+        font = ImageFont.truetype("arial.ttf", 30)
     except:
         try:
-            font = ImageFont.truetype("Arial.ttf", 22)
+            font = ImageFont.truetype("Arial.ttf", 30)
         except:
             # Fall back to default font
             font = ImageFont.load_default()
