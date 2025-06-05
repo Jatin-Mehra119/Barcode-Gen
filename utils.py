@@ -42,7 +42,7 @@ def generate_barcode_with_title(number, title, options):
             font = ImageFont.truetype("Arial.ttf", 30)
         except:
             # Fall back to default font
-            font = ImageFont.load_default()
+            font = ImageFont.load_default(size=30)
     
     # Create a temporary image to measure text size
     temp_img = Image.new('RGB', (1, 1), 'white')
