@@ -5,6 +5,78 @@ from barcode.writer import ImageWriter
 from PIL import Image, ImageDraw, ImageFont
 import io
 import os
+import urllib.request
+import tempfile
+from pathlib import Path
+
+def download_font(font_url, font_name):
+    """Download a font file and return the local path"""
+    try:
+        # Create fonts directory if it doesn't exist
+        fonts_dir = Path("fonts")
+        fonts_dir.mkdir(exist_ok=True)
+        
+        font_path = fonts_dir / font_name
+        
+        # Check if font already exists
+        if font_path.exists():
+            return str(font_path)
+        
+        print(f"Downloading font: {font_name}...")
+        urllib.request.urlretrieve(font_url, font_path)
+        print(f"Font downloaded successfully: {font_path}")
+        return str(font_path)
+        
+    except Exception as e:
+        print(f"Failed to download font {font_name}: {e}")
+        return None
+
+def get_font(size=30):
+    """Get a font with fallback options including font download"""
+    
+    # Font URLs - using reliable sources
+    font_options = [
+        # Try system fonts first
+        {"type": "system", "path": "arial.ttf"},
+        {"type": "system", "path": "Arial.ttf"},
+        {"type": "system", "path": "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"},
+        {"type": "system", "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"},
+        {"type": "system", "path": "/System/Library/Fonts/Arial.ttf"},  # macOS
+        {"type": "system", "path": "C:\\Windows\\Fonts\\arial.ttf"},     # Windows
+        
+        # Downloadable fonts as fallback
+        {
+            "type": "download",
+            "url": "https://github.com/google/fonts/raw/main/apache/roboto/Roboto-Regular.ttf",
+            "name": "Roboto-Regular.ttf"
+        },
+        {
+            "type": "download", 
+            "url": "https://github.com/google/fonts/raw/main/ofl/opensans/OpenSans-Regular.ttf",
+            "name": "OpenSans-Regular.ttf"
+        }
+    ]
+    
+    # Try each font option
+    for font_option in font_options:
+        try:
+            if font_option["type"] == "system":
+                font = ImageFont.truetype(font_option["path"], size)
+                return font
+            elif font_option["type"] == "download":
+                font_path = download_font(font_option["url"], font_option["name"])
+                if font_path:
+                    font = ImageFont.truetype(font_path, size)
+                    return font
+        except Exception as e:
+            continue
+    
+    # Final fallback to default font
+    try:
+        return ImageFont.load_default(size=size)
+    except:
+        # Very old PIL versions might not support size parameter
+        return ImageFont.load_default()
 
 def generate_single_barcode(number, options):
     """Generate a single barcode and return as PIL Image"""
@@ -33,16 +105,9 @@ def generate_barcode_with_title(number, title, options):
     
     # Calculate dimensions for the combined image
     barcode_width, barcode_height = barcode_img.size
-      # Try to load a font, fall back to default if not available
-    try:
-        # Try to use a system font
-        font = ImageFont.truetype("arial.ttf", 30)
-    except:
-        try:
-            font = ImageFont.truetype("Arial.ttf", 30)
-        except:
-            # Fall back to default font
-            font = ImageFont.load_default(size=30)
+    
+    # Get font with fallback options including downloading if needed
+    font = get_font(size=30)
     
     # Create a temporary image to measure text size
     temp_img = Image.new('RGB', (1, 1), 'white')
